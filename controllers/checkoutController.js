@@ -21,7 +21,9 @@ async function getPayPalAccessToken() {
   });
   const data = await res.json();
   return data.access_token;
-}const checkoutController = {
+}
+
+const checkoutController = {
   getCheckoutPage: (req, res) => {
     if (!req.session.cart || req.session.cart.items.length === 0)
       return res.redirect('/cart');
@@ -39,16 +41,20 @@ async function getPayPalAccessToken() {
         email:     req.body.email,     address:   req.body.address,
         city:      req.body.city,      province:  req.body.province,
         zip:       req.body.zip || '', phone:     req.body.phone,
-        total:     cart.totalPrice,    status:    'pending'
+        total:     cart.totalPrice,    status:    'pending',
+        user_id:   req.session.userId || null   // null si el usuario no está autenticado 
       });
+
       for (const item of cart.items) {
         await OrderItem.create({
-          OrderId:   order.id,
-          ProductId: item.product.id,
-          quantity:  item.quantity,
-          price:     item.product.price
+          order_id:   order.id,                      
+          product_id: item.product.id,               
+          store_id:   item.product.store_id || null, 
+          quantity:   item.quantity,
+          price:      item.product.price
         });
       }
+
       req.session.pendingOrderId = order.id;
       // Renderiza la vista con los botones de PayPal
       res.render('payment', {
@@ -84,7 +90,8 @@ async function getPayPalAccessToken() {
       res.status(500).json({ error: 'Error al crear orden PayPal' });
     }
   },
-   // 3. El JS de payment.ejs llama aquí cuando el usuario aprueba en PayPal
+
+  // 3. El JS de payment.ejs llama aquí cuando el usuario aprueba en PayPal
   capturePayPalOrder: async (req, res) => {
     try {
       const { paypalOrderId, orderId } = req.body;
