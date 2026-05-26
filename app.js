@@ -11,6 +11,11 @@ const productRoutes  = require('./routes/products');
 const cartRoutes     = require('./routes/cart');
 const checkoutRoutes = require('./routes/checkout');
 
+const storeAuthRoutes = require('./routes/storeAuth');
+const { attachLocals } = require('./middleware/authMiddleware');
+
+const userAuthRoutes = require('./routes/userAuth');
+
 const app  = express();
 const port = process.env.PORT || 3000;
 
@@ -29,6 +34,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: { maxAge: 3600000 }
 }));
+
+app.use(attachLocals);
 
 // Middleware: carrito vacio en sesion si no existe
 app.use((req, res, next) => {
@@ -50,7 +57,16 @@ app.get('/', (req, res) => {
 app.use('/',         productRoutes);
 app.use('/cart',     cartRoutes);
 app.use('/checkout', checkoutRoutes);
+app.use('/user', userAuthRoutes);
 
+app.use(['/store/login', '/store/register',
+         '/user/login',  '/user/register',
+         '/store-admin', '/customer'],
+  (req, res, next) => { res.locals.layout = false; next(); }
+);
+
+// Rutas — junto a los app.use() existentes:
+app.use('/store', storeAuthRoutes);
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Pagina no encontrada' });
 });
