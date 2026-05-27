@@ -11,10 +11,14 @@ const productRoutes  = require('./routes/products');
 const cartRoutes     = require('./routes/cart');
 const checkoutRoutes = require('./routes/checkout');
 
+const storeAdminRoutes = require('./routes/storeAdmin');
+
 const storeAuthRoutes = require('./routes/storeAuth');
 const { attachLocals } = require('./middleware/authMiddleware');
 
 const userAuthRoutes = require('./routes/userAuth');
+
+const customerRoutes = require('./routes/customer');
 
 const app  = express();
 const port = process.env.PORT || 3000;
@@ -58,6 +62,8 @@ app.use('/',         productRoutes);
 app.use('/cart',     cartRoutes);
 app.use('/checkout', checkoutRoutes);
 app.use('/user', userAuthRoutes);
+app.use('/store-admin', storeAdminRoutes);
+app.use('/customer', customerRoutes);
 
 app.use(['/store/login', '/store/register',
          '/user/login',  '/user/register',
